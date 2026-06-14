@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지속가능 식단 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .progress-bar { transition: width 0.5s ease-in-out; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-slate-900">🥦 지속가능 식단 대시보드</h1>
+            <p class="text-slate-600 mt-2">나의 식단이 환경과 지역사회에 미치는 영향을 확인해보세요.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-semibold mb-6">메뉴 구성하기</h2>
+                
+                <div id="selectors" class="space-y-6">
+                    <!-- Dynamic selectors will be injected here -->
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-semibold mb-6">환경 & 영양 분석 결과</h2>
+                
+                <div class="space-y-8">
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="font-medium">영양 균형 점수</span>
+                            <span id="score-nutrition" class="font-bold text-emerald-600">0</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden">
+                            <div id="bar-nutrition" class="progress-bar bg-emerald-500 h-full w-0"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="font-medium">탄소 발자국 (낮을수록 좋음)</span>
+                            <span id="score-carbon" class="font-bold text-rose-600">0</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden">
+                            <div id="bar-carbon" class="progress-bar bg-rose-500 h-full w-0"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="font-medium">지역 농산물 기여도</span>
+                            <span id="score-local" class="font-bold text-blue-600">0</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden">
+                            <div id="bar-local" class="progress-bar bg-blue-500 h-full w-0"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="feedback" class="mt-8 p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm italic text-slate-600">
+                    메뉴를 선택하여 시뮬레이션을 시작해보세요!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const foodData = {
+            main: [
+                { id: 'm1', name: '무안 양파 크림 파스타', nutrition: 85, carbon: 20, local: 95 },
+                { id: 'm2', name: '무안 양파 불고기 버거', nutrition: 80, carbon: 25, local: 95 },
+                { id: 'm3', name: '무안 양파 양념 치킨', nutrition: 75, carbon: 30, local: 90 },
+                { id: 'm4', name: '무안 양파 치즈 떡볶이', nutrition: 70, carbon: 15, local: 95 },
+                { id: 'm5', name: '무안 양파 닭강정', nutrition: 78, carbon: 25, local: 90 },
+                { id: 'm6', name: '무안 양파 김치볶음밥', nutrition: 88, carbon: 10, local: 100 },
+                { id: 'm7', name: '무안 양파 스테이크', nutrition: 90, carbon: 20, local: 95 },
+                { id: 'm8', name: '무안 양파 타코', nutrition: 85, carbon: 20, local: 90 },
+                { id: 'm9', name: '일반 냉동 피자', nutrition: 40, carbon: 85, local: 5 },
+                { id: 'm10', name: '일반 편의점 도시락', nutrition: 50, carbon: 75, local: 10 }
+            ],
+            side: [
+                { id: 's1', name: '무안 양파 치즈볼', nutrition: 60, carbon: 15, local: 95 },
+                { id: 's2', name: '무안 양파 튀김', nutrition: 65, carbon: 10, local: 100 },
+                { id: 's3', name: '무안 양파 샐러드', nutrition: 95, carbon: 5, local: 100 },
+                { id: 's4', name: '무안 양파 피클', nutrition: 70, carbon: 5, local: 100 },
+                { id: 's5', name: '무안 양파 나쵸칩', nutrition: 55, carbon: 10, local: 90 },
+                { id: 's6', name: '무안 양파 웨지감자', nutrition: 60, carbon: 15, local: 90 },
+                { id: 's7', name: '일반 감자튀김', nutrition: 20, carbon: 70, local: 5 },
+                { id: 's8', name: '일반 나쵸칩', nutrition: 25, carbon: 60, local: 5 },
+                { id: 's9', name: '일반 콘샐러드', nutrition: 40, carbon: 40, local: 20 },
+                { id: 's10', name: '무안 양파 어니언링', nutrition: 50, carbon: 15, local: 95 }
+            ],
+            soup: [
+                { id: 'p1', name: '무안 양파 스프', nutrition: 75, carbon: 10, local: 95 },
+                { id: 'p2', name: '무안 양파 된장국', nutrition: 85, carbon: 10, local: 100 },
+                { id: 'p3', name: '무안 양파 들깨국', nutrition: 80, carbon: 5, local: 100 },
+                { id: 'p4', name: '무안 양파 계란국', nutrition: 75, carbon: 15, local: 90 },
+                { id: 'p5', name: '무안 양파 어묵국', nutrition: 70, carbon: 20, local: 90 },
+                { id: 'p6', name: '무안 양파 로제 스프', nutrition: 75, carbon: 15, local: 90 },
+                { id: 'p7', name: '무안 양파 마라탕 국물', nutrition: 60, carbon: 25, local: 85 },
+                { id: 'p8', name: '일반 사골국', nutrition: 30, carbon: 70, local: 10 },
+                { id: 'p9', name: '일반 미역국', nutrition: 80, carbon: 20, local: 40 },
+                { id: 'p10', name: '일반 짬뽕 국물', nutrition: 50, carbon: 60, local: 20 }
+            ]
+        };
+
+        let selected = { main: null, side: null, soup: null };
+
+        function initSelectors() {
+            const container = document.getElementById('selectors');
+            Object.keys(foodData).forEach(key => {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <label class="block text-sm font-medium mb-2 uppercase tracking-wide text-slate-500">${key === 'main' ? '메인 요리' : key === 'side' ? '사이드 디시' : '국/찌개'}</label>
+                    <select onchange="updateSelection('${key}', this.value)" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <option value="">선택하세요...</option>
+                        ${foodData[key].map(item => `<option value="${item.id}">${item.name}</option>`).join('')}
+                    </select>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateSelection(category, id) {
+            selected[category] = foodData[category].find(i => i.id === id) || null;
+            calculate();
+        }
+
+        function calculate() {
+            let totalNutrition = 0, totalCarbon = 0, totalLocal = 0, count = 0;
+            Object.values(selected).forEach(item => {
+                if(item) {
+                    totalNutrition += item.nutrition;
+                    totalCarbon += item.carbon;
+                    totalLocal += item.local;
+                    count++;
+                }
+            });
+            if(count > 0) {
+                updateBars(Math.round(totalNutrition/count), Math.round(totalCarbon/count), Math.round(totalLocal/count));
+            } else {
+                updateBars(0, 0, 0);
+            }
+        }
+
+        function updateBars(n, c, l) {
+            document.getElementById('score-nutrition').innerText = n;
+            document.getElementById('bar-nutrition').style.width = n + '%';
+            document.getElementById('score-carbon').innerText = c;
+            document.getElementById('bar-carbon').style.width = c + '%';
+            document.getElementById('score-local').innerText = l;
+            document.getElementById('bar-local').style.width = l + '%';
+            updateFeedback(n, c, l);
+        }
+
+        function updateFeedback(n, c, l) {
+            const feedback = document.getElementById('feedback');
+            if (n === 0) {
+                feedback.innerText = "메뉴를 선택하여 시뮬레이션을 시작해보세요!";
+            } else if (l > 70) {
+                feedback.innerText = "훌륭합니다! 지역 농산물을 적극적으로 활용하여 지역경제와 환경을 모두 살리는 건강한 식단을 완성하셨네요.";
+            } else if (l < 30) {
+                feedback.innerText = "음, 로컬 푸드 비중이 낮아요. 무안 양파를 활용한 요리로 바꾸면 탄소 발자국을 줄일 수 있을 것 같아요.";
+            } else {
+                feedback.innerText = "균형 잡힌 식단이네요! 조금 더 지역 식재료를 추가해보면 더 완벽한 지속가능 식단이 될 것 같습니다.";
+            }
+        }
+
+        window.onload = initSelectors;
+    </script>
+</body>
+</html>
